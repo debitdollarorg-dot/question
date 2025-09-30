@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Survival Quiz </title>
+    <style>
+        /* All your existing CSS remains exactly the same */
+        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@500;700&display=swap');
+
+        :root {
+            --primary-color: #fdbb28;
+            --secondary-color: #1a2a6c;
+            --accent-color: #b21f1f;
+            --text-color: #fff;
+            --dark-bg: rgba(0, 0, 0, 0.85);
+            --correct-color: #4CAF50;
+            --wrong-color: #FF4500;
+            --option-bg: #3a4a7f;
+            --timer-height: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, var(--secondary-color), var(--accent-color), var(--primary-color));
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80') no-repeat center center/cover;
+            opacity: 0.2;
+            z-index: -1;
+        }
+
+        .game-container {
+            background: var(--dark-bg);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.7);
+            width: 95%;
+            max-width: 500px;
+            text-align: center;
+            animation: fadeIn 1s ease-in-out;
+            border: 3px solid var(--primary-color);
+            position: relative;
+            overflow: hidden;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 2.2em;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.7);
+            letter-spacing: 1px;
+        }
+
+        p {
+            font-size: 1em;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        button {
+            background: linear-gradient(45deg, var(--primary-color), #e68d00);
+            color: #333;
+            border: none;
+            padding: 12px 25px;
+            margin: 8px;
+            border-radius: 10px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background: linear-gradient(45deg, #e68d00, var(--primary-color));
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .start-screen {
+            display: block;
+        }
+
+        .game-screen, .game-over-screen, .win-screen {
+            display: none;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            font-size: 1em;
+            font-weight: bold;
+        }
+
+        .top-bar .info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px 12px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+        .top-bar .info-item img {
+            height: 20px;
+            width: 20px;
+            vertical-align: middle;
+        }
+
+        .hearts {
+            color: var(--wrong-color);
+            font-size: 1.2em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        .coins {
+            color: #FFD700;
+            font-size: 1em;
+        }
+
+        .question-area {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .question-text {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1.4em;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+        }
+
+        .timer-bar-container {
+            width: 80%;
+            height: var(--timer-height);
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            overflow: hidden;
+            margin-top: 10px;
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.3);
+        }
+        .timer-bar {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, var(--correct-color), #FFD700, var(--wrong-color));
+            transition: width linear;
+            border-radius: 5px;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .options-container button {
+            width: 100%;
+            padding: 15px 10px;
+            background: var(--option-bg);
+            color: #fff;
+            border: 2px solid #5a6b9a;
+            font-size: 1em;
+            transition: all 0.2s ease;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .options-container button:hover:not([disabled]) {
+            background: #4a5b8f;
+            border-color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+        }
+        .options-container button[disabled] {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .options-container button.correct-answer {
+            background: var(--correct-color);
+            border-color: #66BB6A;
+            animation: pulseCorrect 0.7s infinite alternate;
+        }
+        .options-container button.wrong-answer {
+            background: var(--wrong-color);
+            border-color: #FF6347;
+            animation: shake 0.5s ease-out;
+        }
+
+        @keyframes pulseCorrect {
+            from { transform: scale(1); box-shadow: 0 0 10px var(--correct-color); }
+            to { transform: scale(1.03); box-shadow: 0 0 20px var(--correct-color); }
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-10px); }
+            40%, 80% { transform: translateX(10px); }
+        }
+
+        .result-message {
+            margin-top: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            min-height: 35px;
+            color: var(--primary-color);
+        }
+        .result-message.correct { color: #7CFC00; animation: bounceIn 0.5s ease-out; }
+        .result-message.wrong { color: var(--wrong-color); animation: shake 0.5s ease-out; }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .action-buttons button {
+            background: #2196F3;
+            color: #fff;
+            padding: 10px 15px;
+            font-size: 0.9em;
+            border-radius: 8px;
+        }
+        .action-buttons button:hover {
+            background: #1976D2;
+        }
+        .action-buttons button.disabled {
+            background: #607D8B;
+            cursor: not-allowed;
+        }
+
+        .lifelines-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            margin-top: 10px;
+        }
+        .lifeline-btn {
+            background: #673AB7;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.8em;
+            transition: all 0.2s ease;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.4);
+        }
+        .lifeline-btn:hover:not([disabled]) {
+            background: #512DA8;
+            transform: translateY(-3px);
+        }
+        .lifeline-btn[disabled] {
+            background: #9E9E9E;
+            cursor: not-allowed;
+            opacity: 0.6;
+            box-shadow: none;
+        }
+
+        .game-over-screen, .win-screen {
+            animation: fadeIn 1s ease-in-out;
+            padding: 20px;
+        }
+        .game-over-screen h2, .win-screen h2 {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--primary-color);
+            font-size: 2em;
+            margin-bottom: 15px;
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
+        }
+        .game-over-screen p, .win-screen p {
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+        .game-over-screen button, .win-screen button {
+            background: linear-gradient(45deg, var(--primary-color), #e68d00);
+            color: #333;
+        }
+        .game-over-screen button:hover, .win-screen button:hover {
+            background: linear-gradient(45deg, #e68d00, var(--primary-color));
+        }
+
+        .points-ladder {
+            list-style: none;
+            padding: 0;
+            margin: 20px auto;
+            width: 95%;
+            max-width: 300px;
+            border: 2px solid var(--primary-color);
+            border-radius: 10px;
+            background: rgba(0,0,0,0.6);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        .points-ladder li {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.9em;
+            transition: background-color 0.3s ease;
+        }
+        .points-ladder li:last-child {
+            border-bottom: none;
+        }
+        .points-ladder li.current {
+            background: var(--primary-color);
+            color: #333;
+            font-weight: bold;
+            border-radius: 8px;
+            transform: scale(1.05);
+            margin: 3px;
+        }
+        .points-ladder li.achieved {
+            background: rgba(76, 175, 80, 0.3);
+            color: #fff;
+        }
+        .points-ladder li span:first-child {
+            color: rgba(255,255,255,0.7);
+        }
+        .points-ladder li.current span:first-child {
+            color: #333;
+        }
+
+        /* Progress bar for questions */
+        .progress-container {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), #FFD700);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        /* Modern question box design */
+        .question-box {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .question-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+        }
+
+        .question-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .question-box .question-text {
+            font-size: 1.3em;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.6);
+        }
+
+        .question-box .options-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .question-box .option-btn {
+            background: var(--option-bg);
+            color: #fff;
+            border: 2px solid #5a6b9a;
+            padding: 12px 8px;
+            border-radius: 10px;
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .question-box .option-btn:hover {
+            background: #4a5b8f;
+            border-color: var(--primary-color);
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+        }
+
+        /* Ad-related styles */
+        .ad-container {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            border: 1px dashed var(--primary-color);
+            text-align: center;
+        }
+        
+        .ad-button {
+            background: linear-gradient(45deg, #FF5722, #FF9800);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            margin: 10px 0;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .ad-button:hover {
+            background: linear-gradient(45deg, #E64A19, #F57C00);
+            transform: translateY(-3px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+            .question-text {
+                font-size: 1.2em;
+            }
+            .options-container {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            .options-container button {
+                font-size: 0.9em;
+                padding: 12px 8px;
+            }
+            .action-buttons {
+                flex-direction: column;
+                gap: 8px;
+            }
+            .lifelines-container {
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            .lifeline-btn {
+                padding: 6px 10px;
+                font-size: 0.75em;
+            }
+            .game-container {
+                padding: 15px;
+            }
+            .points-ladder {
+                width: 100%;
+            }
+            .question-box .options-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .game-container {
+                padding: 10px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            .question-text {
+                font-size: 1.1em;
+            }
+            button {
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+            .top-bar .info-item {
+                padding: 5px 10px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="start-screen">
+            <h1>Survival Quiz</h1>
+            <p>আপনি একটি রহস্যময়, জনমানবহীন দ্বীপে আটকা পড়েছেন। বাঁচার একমাত্র উপায় হলো দ্বীপের গভীর রহস্য উন্মোচন করা এবং অদ্ভুত কুইজগুলির সঠিক উত্তর দেওয়া। প্রতিটি সঠিক উত্তর আপনাকে খাবার, পানি, সরঞ্জাম, মানচিত্র বা গুরুত্বপূর্ণ ক্লু দেবে যা আপনাকে দ্বীপ থেকে পালিয়ে যেতে সাহায্য করবে। কিন্তু সাবধান! প্রতিটি ভুল উত্তরে আপনার জীবনশক্তি কমে যাবে। আপনার লক্ষ্য হলো জ্ঞান এবং বুদ্ধির মাধ্যমে এই দ্বীপের চ্যালেঞ্জগুলো মোকাবিলা করে স্বাধীনতা অর্জন করা।</p>
+            <button onclick="startGame()">Start Game</button>
+        </div>
+
+        <div class="game-screen">
+            <div class="top-bar">
+                <div class="info-item"><img src="https://img.icons8.com/ios-filled/50/ffffff/money-bag.png" alt="Coins">Coins: <span id="coins">0</span></div>
+                <div class="info-item"><img src="https://img.icons8.com/ios-filled/50/ff4500/like--v1.png" alt="Lives">Life: <span id="lives" class="hearts">❤️❤️❤️</span></div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar"></div>
+            </div>
+
+            <div class="lifelines-container">
+                <button class="lifeline-btn" id="lifeline5050" onclick="useLifeline('50/50')">50/50</button>
+                <button class="lifeline-btn" id="lifelinePhone" onclick="useLifeline('phone')">Phone a Friend</button>
+            </div>
+
+            <div class="question-box">
+                <div class="question-text" id="questionText"></div>
+                <div class="timer-bar-container"><div class="timer-bar" id="timerBar"></div></div>
+            </div>
+
+            <div class="options-grid" id="optionsContainer"></div>
+            <div class="result-message" id="resultMessage"></div>
+
+            <div class="action-buttons">
+                <button id="nextQuestionBtn" onclick="nextQuestion()">Next Question</button>
+            </div>
+            
+            <ul class="points-ladder" id="pointsLadder">
+                <!-- Points ladder will be populated by JS -->
+            </ul>
+        </div>
+
+        <div class="game-over-screen" id="gameOverScreen">
+            <h2>Game Over!</h2>
+            <p>আপনি দ্বীপে আপনার জ্ঞান হারালেন। <br>আপনার অর্জিত কয়েন: <span id="finalCoins">0</span></p>
+            <div class="ad-container">
+                <p>Watch an ad to continue with an extra life!</p>
+                <button class="ad-button" onclick="watchAdForExtraLife()">Watch Ad</button>
+            </div>
+            <button onclick="restartGame()">Play Again</button>
+        </div>
+
+        <div class="win-screen" id="winScreen">
+            <h2>অভিনন্দন! আপনি দ্বীপ থেকে পালিয়েছেন!</h2>
+            <p>আপনি সকল কুইজ সফলভাবে সম্পন্ন করেছেন এবং স্বাধীনতা অর্জন করেছেন! <br> আপনার মোট অর্জিত কয়েন: <span id="totalCoinsWin">0</span></p>
+            <div class="ad-container">
+                <p>Watch an ad to double your coins!</p>
+                <button class="ad-button" onclick="watchAdForDoubleCoins()">Watch Ad</button>
+            </div>
+            <button onclick="restartGame()">Play Again</button>
+        </div>
+    </div>
+
+    <script>
+        const startScreen = document.querySelector('.start-screen');
+        const gameScreen = document.querySelector('.game-screen');
+        const questionText = document.getElementById('questionText');
+        const timerBar = document.getElementById('timerBar');
+        const optionsContainer = document.getElementById('optionsContainer');
+        const coinsDisplay = document.getElementById('coins');
+        const livesDisplay = document.getElementById('lives');
+        const resultMessage = document.getElementById('resultMessage');
+        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const finalCoinsDisplay = document.getElementById('finalCoins');
+        const winScreen = document.getElementById('winScreen');
+        const totalCoinsWinDisplay = document.getElementById('totalCoinsWin');
+        const lifeline5050Btn = document.getElementById('lifeline5050');
+        const lifelinePhoneBtn = document.getElementById('lifelinePhone');
+        const pointsLadder = document.getElementById('pointsLadder');
+        const progressBar = document.getElementById('progressBar');
+
+        let currentQuestionIndex = 0;
+        let coins = 0;
+        let lives = 3;
+        let timer;
+        let timeLeft;
+        const TIME_PER_QUESTION = 30; // seconds
+        let used5050 = false;
+        let usedPhoneAFriend = false;
+
+        const pointsMap = [
+            100, 200, 300, 500, 1000,
+            2000, 4000, 8000, 16000, 32000,
+            64000, 125000, 250000, 500000, 1000000,
+            2000000, 4000000, 8000000, 16000000, 32000000,
+            64000000, 125000000, 250000000, 500000000, 1000000000,
+            1100000000, 1200000000, 1300000000, 1400000000, 1500000000,
+            1600000000, 1700000000, 1800000000, 1900000000, 2000000000,
+            2100000000, 2200000000, 2300000000, 2400000000, 2500000000,
+            2600000000, 2700000000, 2800000000, 2900000000, 3000000000,
+            3100000000, 3200000000, 3300000000, 3400000000, 3500000000
+        ];
+
+        const questions = [
+            // Level 1: প্রাথমিক বেঁচে থাকা (Basic Survival) - 5 questions
+            { question: "দ্বীপে তীব্র গরমে শরীর ঠান্ডা রাখতে কোনটি সবচেয়ে উপযোগী?", options: ["বালি", "গাছের ছায়া", "পাথর", "শুকনো কাঠ"], answer: "গাছের ছায়া" },
+            { question: "ক্ষুধা পেলে দ্বীপে কোন ধরনের ফল খুঁজে খাওয়া নিরাপদ?", options: ["অপরিচিত উজ্জ্বল রঙের ফল", "শুধুমাত্র পরিচিত ফল", "সব ধরনের ফল", "শুধু গাছের পাতা"], answer: "শুধুমাত্র পরিচিত ফল" },
+            { question: "রাতে দিক নির্ণয়ের জন্য কোনটি সবচেয়ে বেশি কাজে লাগে?", options: ["জোনাকি পোকা", "চাঁদ ও তারা", "গাছের ডাল", "আকাশের মেঘ"], answer: "চাঁদ ও তারা" },
+            { question: "ঝড়ের সময় আশ্রয় নেওয়ার জন্য কোনটি সবচেয়ে ভালো জায়গা?", options: ["খোলা মাঠ", "লম্বা গাছ", "গুহা বা শিলাখণ্ডের নিচে", "সমুদ্রের ধারে"], answer: "গুহা বা শিলাখণ্ডের নিচে" },
+            { question: "পোকামাকড়ের কামড় থেকে বাঁচতে কি ব্যবহার করা যেতে পারে?", options: ["মাটি", "গাছের রস", "পোশাক দিয়ে শরীর ঢাকা", "সমুদ্রের পানি"], answer: "পোশাক দিয়ে শরীর ঢাকা" },
+
+            // Level 2: জলের সন্ধান (Quest for Water) - 5 questions
+            { question: "সমুদ্রের পানি পান করা কেন উচিত নয়?", options: ["এটি ঠান্ডা থাকে", "এটি লবণাক্ত ও বিপজ্জনক", "এর স্বাদ তেতো", "এটি পরিষ্কার থাকে না"], answer: "এটি লবণাক্ত ও বিপজ্জনক" },
+            { question: "বৃষ্টির পানি কিভাবে সংগ্রহ করা যেতে পারে?", options: ["খালি হাতে ধরে", "বড় পাতা বা পাত্র দিয়ে", "মাটিতে গর্ত করে", "শুকনো কাপড় দিয়ে"], answer: "বড় পাতা বা পাত্র দিয়ে" },
+            { question: "মিষ্টি জলের ঝর্ণা সাধারণত কোথায় পাওয়া যায়?", options: ["সমুদ্রের কাছে", "পাহাড়ের পাদদেশে", "শুকনো বালির নিচে", "লম্বা গাছের মাথায়"], answer: "পাহাড়ের পাদদেশে" },
+            { question: "কোন উদ্ভিদ থেকে পানি পাওয়া যেতে পারে?", options: ["ক্যাকটাস", "ফার্ন", "শুকনো ঘাস", "শেওলা"], answer: "ক্যাকটাস" },
+            { question: "মাটিতে কুয়া বা গর্ত খুঁড়লে পানি পাওয়ার সম্ভাবনা বেশি কোথায়?", options: ["উঁচু টিলায়", "নদী বা ঝর্ণার কাছাকাছি", "গভীর জঙ্গলে", "সমুদ্র সৈকতে"], answer: "নদী বা ঝর্ণার কাছাকাছি" },
+
+            // Level 3: সরঞ্জাম নির্মাণ (Crafting Tools) - 5 questions
+            { question: "ধারালো পাথরের কুঠার তৈরির জন্য কোনটি সবচেয়ে উপযোগী পাথর?", options: ["গোল মসৃণ পাথর", "ভঙ্গুর পাথর", "ধারালো কিনারাযুক্ত শক্ত পাথর", "নরম মাটি পাথর"], answer: "ধারালো কিনারাযুক্ত শক্ত পাথর" },
+            { question: "মাছ ধরার জন্য বর্শা বানাতে কোন ধরনের লাঠি ব্যবহার করবেন?", options: ["নরম ও বাঁকা", "সোজা ও শক্ত", "ছোট ও হালকা", "পাতলা ও দুর্বল"], answer: "সোজা ও শক্ত" },
+            { question: "আগুন জ্বালানোর জন্য ফ্রিকশন পদ্ধতি (ঘষা) ব্যবহার করলে কোন জিনিস দুটি প্রধানত প্রয়োজন?", options: ["জল ও পাথর", "পাতলা পাতা ও রশি", "শুকনো কাঠ ও শক্ত লাঠি", "মাটি ও ঘাস"], answer: "শুকনো কাঠ ও শক্ত লাঠি" },
+            { question: "কোন ধরনের গাছের ছাল দড়ি বানানোর জন্য সবচেয়ে উপযোগী?", options: ["সরাসরি ছাল ওঠা যায় এমন গাছ", "শক্ত ও পুরু ছালের গাছ", "নরম ও আঁশযুক্ত ছালের গাছ", "কাঁটাযুক্ত গাছ"], answer: "নরম ও আঁশযুক্ত ছালের গাছ" },
+            { question: "পাতা দিয়ে বাসন বা পাত্র বানাতে কোন ধরনের পাতা সবচেয়ে ভালো?", options: ["ছোট ও শক্ত পাতা", "বড় ও নমনীয় পাতা", "শুকনো ও ভঙ্গুর পাতা", "কাঁটাযুক্ত পাতা"], answer: "বড় ও নমনীয় পাতা" },
+
+            // Level 4: বন্যপ্রাণীর সাথে মোকাবিলা (Wildlife Encounter) - 5 questions
+            { question: "বন্যপ্রাণীর আক্রমণ থেকে বাঁচতে কোনটি সবচেয়ে গুরুত্বপূর্ণ?", options: ["দৌড়ে পালানো", "শব্দ করা ও নিজেকে বড় দেখানো", "গাছের ওপরে উঠে যাওয়া", "মাটিতে শুয়ে পড়া"], answer: "শব্দ করা ও নিজেকে বড় দেখানো" },
+            { question: "সাপের কামড়ের প্রাথমিক চিকিৎসা হিসেবে কোনটি করা উচিত?", options: ["ক্ষত স্থান কেটে রক্ত বের করা", "জোরে জোরে হাঁটা", "আক্রান্ত স্থান নিচু রাখা ও শান্ত থাকা", "গরম পানি দিয়ে ধোয়া"], answer: "আক্রান্ত স্থান নিচু রাখা ও শান্ত থাকা" },
+            { question: "মৌমাছির ঝাঁক থেকে বাঁচতে কোনটি করা উচিত?", options: ["দৌড়ে পালানো", "নিজেকে পাতার নিচে লুকানো", "জলে ডুব দেওয়া", "আগুন জ্বালানো"], answer: "দৌড়ে পালানো" },
+            { question: "বাঘ বা বড় বন্যপ্রাণী দেখলে কোনটি করা উচিত?", options: ["সোজা দৌড়ে পালানো", "চোখে চোখ রাখা ও পিছু হটা", "গাছে উঠা", "জোরে চিৎকার করা"], answer: "চোখে চোখ রাখা ও পিছু হটা" },
+            { question: "কোন ধরনের মাশরুম খাওয়া নিরাপদ?", options: ["উজ্জ্বল রঙের মাশরুম", "শুধুমাত্র চেনা ও পরিচিত মাশরুম", "সব ধরনের মাশরুম", "গাছের গুঁড়িতে জন্মানো মাশরুম"], answer: "শুধুমাত্র চেনা ও পরিচিত মাশরুম" },
+
+            // Level 5: পালানোর পরিকল্পনা (Escape Plan) - 5 questions
+            { question: "উদ্ধারকারী দলকে সংকেত দেওয়ার জন্য কোনটি সবচেয়ে কার্যকর?", options: ["জোরে চিৎকার করা", "আগুন জ্বালানো ও ধোঁয়া তৈরি করা", "গাছে চড়া", "সমুদ্রে সাঁতার কাটা"], answer: "আগুন জ্বালানো ও ধোঁয়া তৈরি করা" },
+            { question: "ভেসে থাকার জন্য কোনটি সবচেয়ে ভালো ভেলা তৈরি করা যায়?", options: ["পাথর", "গাছের গুঁড়ি ও লতা", "মাটি", "পাতা"], answer: "গাছের গুঁড়ি ও লতা" },
+            { question: "দ্বীপের কোন দিকে সাধারণত জনবসতি পাওয়ার সম্ভাবনা বেশি?", options: ["উঁচু পাহাড়ি এলাকায়", "গভীর জঙ্গলে", "নদীর মোহনায় বা উপকূলবর্তী এলাকায়", "শুকনো মরু এলাকায়"], answer: "নদীর মোহনায় বা উপকূলবর্তী এলাকায়" },
+            { question: "আকাশে উদ্ধারকারী বিমান দেখলে কোন সংকেত দেওয়া উচিত?", options: ["হাত নেড়ে ডাকা", "আয়না বা উজ্জ্বল বস্তু দিয়ে আলোর প্রতিফলন তৈরি করা", "গাছ কাটা", "জলে সাঁতার কাটা"], answer: "আয়না বা উজ্জ্বল বস্তু দিয়ে আলোর প্রতিফলন তৈরি করা" },
+            { question: "দ্বীপ থেকে পালানোর জন্য কোন ঋতু সবচেয়ে উপযুক্ত?", options: ["বর্ষাকাল", "শীতকাল", "শুষ্ক ও নিরাপদ আবহাওয়ার সময়", "গরমকাল"], answer: "শুষ্ক ও নিরাপদ আবহাওয়ার সময়" },
+
+            // Additional questions to reach 50+
+            { question: "দ্বীপে কোন ধরনের গাছ থেকে ফলমূল সংগ্রহ করা সবচেয়ে নিরাপদ?", options: ["সবুজ পাতাওয়ালা গাছ", "কাঁটাওয়ালা গাছ", "পরিচিত ফলধারী গাছ", "ফুলওয়ালা গাছ"], answer: "পরিচিত ফলধারী গাছ" },
+            { question: "দ্বীপে কোন প্রাণীর মাংস সবচেয়ে নিরাপদে খাওয়া যায়?", options: ["সাপ", "পাখি", "বড় বন্যপ্রাণী", "কীটপতঙ্গ"], answer: "পাখি" },
+            { question: "দ্বীপে কোন ধরনের আগুন সবচেয়ে দীর্ঘস্থায়ী?", options: ["বড় শিখাওয়ালা আগুন", "ছোট ও ধীরে জ্বলা আগুন", "দ্রুত জ্বলে যাওয়া আগুন", "ধোঁয়াওয়ালা আগুন"], answer: "ছোট ও ধীরে জ্বলা আগুন" },
+            { question: "দ্বীপে কোন ধরনের আশ্রয় সবচেয়ে নিরাপদ?", options: ["খোলা আকাশের নিচে", "গাছের ওপর প্ল্যাটফর্ম", "গুহার ভিতর", "নদীর ধারে"], answer: "গাছের ওপর প্ল্যাটফর্ম" },
+            { question: "দ্বীপে কোন ধরনের মাছ সবচেয়ে নিরাপদে খাওয়া যায়?", options: ["উজ্জ্বল রঙের মাছ", "বড় আকারের মাছ", "সামুদ্রিক কাঁটাওয়ালা মাছ", "পরিচিত ও সাধারণ মাছ"], answer: "পরিচিত ও সাধারণ মাছ" },
+            { question: "দ্বীপে কোন ধরনের পাথর সবচেয়ে ভালো হাতিয়ার বানানো যায়?", options: ["নরম পাথর", "ধারালো কিনারাযুক্ত শক্ত পাথর", "গোলাকার পাথর", "ভারী পাথর"], answer: "ধারালো কিনারাযুক্ত শক্ত পাথর" },
+            { question: "দ্বীপে কোন ধরনের কাঠ সবচেয়ে ভালো জ্বলে?", options: ["সবুজ কাঠ", "শুকনো কাঠ", "ভেজা কাঠ", "নরম কাঠ"], answer: "শুকনো কাঠ" },
+            { question: "দ্বীপে কোন ধরনের লতা সবচেয়ে মজবুত দড়ি বানানো যায়?", options: ["শুকনো লতা", "সবুজ ও নমনীয় লতা", "কাঁটাওয়ালা লতা", "মোটা লতা"], answer: "সবুজ ও নমনীয় লতা" },
+            { question: "দ্বীপে কোন ধরনের পাতা সবচেয়ে ভালো ছাউনি বানানো যায়?", options: ["ছোট পাতা", "বড় ও চওড়া পাতা", "শুকনো পাতা", "কাঁটাওয়ালা পাতা"], answer: "বড় ও চওড়া পাতা" },
+            { question: "দ্বীপে কোন ধরনের মাটি সবচেয়ে ভালো বাসন বানানো যায়?", options: ["বালি মাটি", "কাদা মাটি", "পাথুরে মাটি", "শুকনো মাটি"], answer: "কাদা মাটি" },
+            { question: "দ্বীপে কোন ধরনের গাছ সবচেয়ে ভালো ছায়া দেয়?", options: ["ছোট গাছ", "বড় ও ঘন পাতাওয়ালা গাছ", "কাঁটাওয়ালা গাছ", "ফলহীন গাছ"], answer: "বড় ও ঘন পাতাওয়ালা গাছ" },
+            { question: "দ্বীপে কোন ধরনের প্রাণী সবচেয়ে কম বিপজ্জনক?", options: ["ছোট পাখি", "বড় বন্যপ্রাণী", "সাপ", "বড় মাছ"], answer: "ছোট পাখি" },
+            { question: "দ্বীপে কোন ধরনের ফল সবচেয়ে বেশি পুষ্টিকর?", options: ["পরিচিত ও রঙিন ফল", "অপরিচিত ফল", "কাঁচা ফল", "শুকনো ফল"], answer: "পরিচিত ও রঙিন ফল" },
+            { question: "দ্বীপে কোন ধরনের পানি সবচেয়ে নিরাপদে পান করা যায়?", options: ["সমুদ্রের পানি", "বৃষ্টির পানি", "নদীর পানি", "কুয়ার পানি"], answer: "বৃষ্টির পানি" },
+            { question: "দ্বীপে কোন ধরনের আগুন সবচেয়ে ভালো রান্নার কাজে লাগে?", options: ["বড় শিখাওয়ালা আগুন", "ছোট ও স্থির আগুন", "ধোঁয়াওয়ালা আগুন", "দ্রুত জ্বলে যাওয়া আগুন"], answer: "ছোট ও স্থির আগুন" },
+            { question: "দ্বীপে কোন ধরনের আশ্রয় সবচেয়ে ভালো বৃষ্টি থেকে রক্ষা করে?", options: ["খোলা জায়গা", "গাছের নিচে", "ছাউনিযুক্ত আশ্রয়", "নদীর ধারে"], answer: "ছাউনিযুক্ত আশ্রয়" },
+            { question: "দ্বীপে কোন ধরনের হাতিয়ার সবচেয়ে বেশি কাজে লাগে?", options: ["পাথরের কুঠার", "লাঠি", "পাথরের ছুরি", "হাড়ের বর্শা"], answer: "পাথরের কুঠার" },
+            { question: "দ্বীপে কোন ধরনের সংকেত সবচেয়ে দূর থেকে দেখা যায়?", options: ["ধোঁয়ার সংকেত", "আলোর সংকেত", "শব্দের সংকেত", "রঙের সংকেত"], answer: "ধোঁয়ার সংকেত" },
+            { question: "দ্বীপে কোন ধরনের পাথর সবচেয়ে ভালো আগুন জ্বালানো যায়?", options: ["চকচকে পাথর", "নরম পাথর", "শক্ত পাথর", "ভারী পাথর"], answer: "চকচকে পাথর" },
+            { question: "দ্বীপে কোন ধরনের গাছ সবচেয়ে ভালো ফল দেয়?", options: ["পরিচিত ফলগাছ", "অপরিচিত গাছ", "কাঁটাওয়ালা গাছ", "ফুলগাছ"], answer: "পরিচিত ফলগাছ" },
+            { question: "দ্বীপে কোন ধরনের প্রাণী সবচেয়ে ভালো খাদ্য হিসেবে গণ্য?", options: ["বড় বন্যপ্রাণী", "ছোট পাখি", "সাপ", "কীটপতঙ্গ"], answer: "ছোট পাখি" },
+            { question: "দ্বীপে কোন ধরনের পাতা সবচেয়ে ভালো ওষুধের কাজ করে?", options: ["পরিচিত ভেষজ পাতা", "অপরিচিত পাতা", "কাঁটাওয়ালা পাতা", "শুকনো পাতা"], answer: "পরিচিত ভেষজ পাতা" },
+            { question: "দ্বীপে কোন ধরনের কাঠ সবচেয়ে ভালো ভেলা বানানো যায়?", options: ["ভারী কাঠ", "হালকা ও ভাসমান কাঠ", "নরম কাঠ", "শক্ত কাঠ"], answer: "হালকা ও ভাসমান কাঠ" },
+            { question: "দ্বীপে কোন ধরনের পাথর সবচেয়ে ভালো ছুরি বানানো যায়?", options: ["চকচকে পাথর", "নরম পাথর", "শক্ত ও ধারালো পাথর", "গোলাকার পাথর"], answer: "শক্ত ও ধারালো পাথর" },
+            { question: "দ্বীপে কোন ধরনের লতা সবচেয়ে ভালো বুনন কাজে লাগে?", options: ["শুকনো লতা", "সবুজ ও নমনীয় লতা", "কাঁটাওয়ালা লতা", "মোটা লতা"], answer: "সবুজ ও নমনীয় লতা" },
+            { question: "দ্বীপে কোন ধরনের মাটি সবচেয়ে ভালো ইট বানানো যায়?", options: ["বালি মাটি", "কাদা মাটি", "পাথুরে মাটি", "শুকনো মাটি"], answer: "কাদা মাটি" },
+            { question: "দ্বীপে কোন ধরনের গাছ সবচেয়ে ভালো জ্বালানি কাঠ দেয়?", options: ["সবুজ গাছ", "শুকনো গাছ", "নরম কাঠের গাছ", "শক্ত কাঠের গাছ"], answer: "শক্ত কাঠের গাছ" },
+            { question: "দ্বীপে কোন ধরনের প্রাণী সবচেয়ে ভালো চামড়া দেয়?", options: ["ছোট পাখি", "বড় প্রাণী", "সাপ", "মাছ"], answer: "বড় প্রাণী" },
+            { question: "দ্বীপে কোন ধরনের ফল সবচেয়ে বেশি দিন টিকে?", options: ["কাঁচা ফল", "পাকা ফল", "শুকনো ফল", "অপরিচিত ফল"], answer: "শুকনো ফল" },
+            { question: "দ্বীপে কোন ধরনের পানি সবচেয়ে ভালো সংরক্ষণ করা যায়?", options: ["সমুদ্রের পানি", "বৃষ্টির পানি", "নদীর পানি", "কুয়ার পানি"], answer: "বৃষ্টির পানি" }
+        ];
+
+        function startGame() {
+            startScreen.style.display = 'none';
+            gameScreen.style.display = 'block';
+            currentQuestionIndex = 0;
+            coins = 0;
+            lives = 3;
+            used5050 = false;
+            usedPhoneAFriend = false;
+            updateCoins();
+            updateLives();
+            updatePointsLadder();
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                showWinScreen();
+                return;
+            }
+
+            const question = questions[currentQuestionIndex];
+            questionText.textContent = question.question;
+            optionsContainer.innerHTML = '';
+            resultMessage.textContent = '';
+            resultMessage.className = 'result-message';
+            nextQuestionBtn.style.display = 'none';
+            lifeline5050Btn.disabled = used5050;
+            lifelinePhoneBtn.disabled = usedPhoneAFriend;
+
+            question.options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = 'option-btn';
+                button.addEventListener('click', () => checkAnswer(option, button));
+                optionsContainer.appendChild(button);
+            });
+
+            updateProgressBar();
+            startTimer();
+        }
+
+        function startTimer() {
+            timeLeft = TIME_PER_QUESTION;
+            timerBar.style.width = '100%';
+            timerBar.style.transition = `width ${TIME_PER_QUESTION}s linear`;
+
+            timer = setInterval(() => {
+                timeLeft--;
+                timerBar.style.width = `${(timeLeft / TIME_PER_QUESTION) * 100}%`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    handleTimeUp();
+                }
+            }, 1000);
+        }
+
+        function handleTimeUp() {
+            resultMessage.textContent = 'সময় শেষ! ভুল উত্তর!';
+            resultMessage.className = 'result-message wrong';
+            lives--;
+            updateLives();
+            disableAllOptions();
+            nextQuestionBtn.style.display = 'block';
+
+            if (lives <= 0) {
+                setTimeout(showGameOverScreen, 1500);
+            }
+        }
+
+        function checkAnswer(selectedOption, button) {
+            clearInterval(timer);
+            const question = questions[currentQuestionIndex];
+            const isCorrect = selectedOption === question.answer;
+
+            if (isCorrect) {
+                resultMessage.textContent = 'সঠিক উত্তর!';
+                resultMessage.className = 'result-message correct';
+                coins += pointsMap[currentQuestionIndex];
+                updateCoins();
+                button.classList.add('correct-answer');
+            } else {
+                resultMessage.textContent = 'ভুল উত্তর! সঠিক উত্তর: ' + question.answer;
+                resultMessage.className = 'result-message wrong';
+                lives--;
+                updateLives();
+                button.classList.add('wrong-answer');
+                highlightCorrectAnswer();
+            }
+
+            disableAllOptions();
+            nextQuestionBtn.style.display = 'block';
+
+            if (lives <= 0) {
+                setTimeout(showGameOverScreen, 1500);
+            }
+        }
+
+        function highlightCorrectAnswer() {
+            const question = questions[currentQuestionIndex];
+            const buttons = optionsContainer.querySelectorAll('button');
+            buttons.forEach(button => {
+                if (button.textContent === question.answer) {
+                    button.classList.add('correct-answer');
+                }
+            });
+        }
+
+        function disableAllOptions() {
+            const buttons = optionsContainer.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.disabled = true;
+            });
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showWinScreen();
+            }
+        }
+
+        function updateCoins() {
+            coinsDisplay.textContent = coins.toLocaleString();
+        }
+
+        function updateLives() {
+            let hearts = '';
+            for (let i = 0; i < lives; i++) {
+                hearts += '❤️';
+            }
+            livesDisplay.textContent = hearts;
+        }
+
+        function updateProgressBar() {
+            const progress = ((currentQuestionIndex + 1) / questions.length) * 100;
+            progressBar.style.width = `${progress}%`;
+        }
+
+        function updatePointsLadder() {
+            pointsLadder.innerHTML = '';
+            pointsMap.slice(0, questions.length).forEach((points, index) => {
+                const li = document.createElement('li');
+                li.innerHTML = `<span>${index + 1}. ${points.toLocaleString()} কয়েন</span>`;
+                if (index === currentQuestionIndex) {
+                    li.classList.add('current');
+                } else if (index < currentQuestionIndex) {
+                    li.classList.add('achieved');
+                }
+                pointsLadder.appendChild(li);
+            });
+        }
+
+        function useLifeline(type) {
+            if (type === '50/50' && !used5050) {
+                const question = questions[currentQuestionIndex];
+                const wrongOptions = question.options.filter(option => option !== question.answer);
+                const optionsToRemove = wrongOptions.slice(0, 2);
+                
+                const buttons = optionsContainer.querySelectorAll('button');
+                buttons.forEach(button => {
+                    if (optionsToRemove.includes(button.textContent)) {
+                        button.style.display = 'none';
+                    }
+                });
+                
+                used5050 = true;
+                lifeline5050Btn.disabled = true;
+            } else if (type === 'phone' && !usedPhoneAFriend) {
+                const question = questions[currentQuestionIndex];
+                const friendSays = `আমার মনে হয় উত্তরটি হতে পারে: ${question.answer}`;
+                resultMessage.textContent = friendSays;
+                resultMessage.className = 'result-message';
+                
+                usedPhoneAFriend = true;
+                lifelinePhoneBtn.disabled = true;
+            }
+        }
+
+        function showGameOverScreen() {
+            gameScreen.style.display = 'none';
+            gameOverScreen.style.display = 'block';
+            finalCoinsDisplay.textContent = coins.toLocaleString();
+        }
+
+        function showWinScreen() {
+            gameScreen.style.display = 'none';
+            winScreen.style.display = 'block';
+            totalCoinsWinDisplay.textContent = coins.toLocaleString();
+        }
+
+        function restartGame() {
+            gameOverScreen.style.display = 'none';
+            winScreen.style.display = 'none';
+            startGame();
+        }
+
+        // Ad functions
+        function watchAdForExtraLife() {
+            show_9934326('pop').then(() => {
+                // User watched ad till the end
+                lives = 1;
+                coins = Math.floor(coins * 0.5); // Keep half coins
+                gameOverScreen.style.display = 'none';
+                gameScreen.style.display = 'block';
+                updateLives();
+                updateCoins();
+            }).catch(e => {
+                // User closed ad or error occurred
+                alert("Ad not completed. Please try again.");
+            });
+        }
+
+        function watchAdForDoubleCoins() {
+            show_9934326('pop').then(() => {
+                // User watched ad till the end
+                coins *= 2;
+                winScreen.style.display = 'none';
+                startScreen.style.display = 'block';
+                alert(`Congratulations! Your coins have been doubled to ${coins.toLocaleString()}!`);
+            }).catch(e => {
+                // User closed ad or error occurred
+                alert("Ad not completed. Please try again.");
+            });
+        }
+
+        // Initialize points ladder
+        updatePointsLadder();
+    </script>
+    
+    <!-- SDK Script -->
+    <script src='//libtl.com/sdk.js' data-zone='9934326' data-sdk='show_9934326'></script>
+</body>
+</html>
